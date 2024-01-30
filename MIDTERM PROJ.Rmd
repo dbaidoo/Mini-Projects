@@ -1,0 +1,749 @@
+---
+title: "Analysis of Variance and Experimental Design - Mini Project 1"
+
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r, echo = F, include=F}
+library(SDAResources)
+library(Rcpp)
+library(rlang)
+library(ggplot2)
+library(ggrepel)
+library(plyr)
+library(dplyr)
+require(graphics)
+library(xtable)
+library(tidyr)
+library(MASS)
+library(car)
+library(additivityTests)
+library(asbio)
+```
+
+**Problem**
+
+*This dataset is from an experiment on how plants adapt to cold climates. The investigators*
+*decided to study this problem after observing that plants that have been conditioned to cold*
+*previously appear to suffer less damage from the cold.*
+*Two species of potato were studied (species 1 and 2). Each plant was exposed to one of*
+*two acclimatization regimes (1= plant was kept in cold room; 0= plant was kept at room*
+*temperature) for several days. Later, plants were subjected to one of two cold temperatures (-4*
+*degrees C is coded as 1; -8 degrees C is coded as 2). Two responses were measured: damage*
+*score for photosynthesis (photo), and damage score for ion leakage (leak).*
+*In this project, you will use ion leakage to be the response variable. Some of the 80 plants*
+*originally assigned to the treatment combinations were lost during the experiment. The task*
+*is to analyze the data from the plants that made it through, and assess the effects of the three*
+*experimental factors species, regime, and temperature on the response ion leakage.*
+
+
+
+
+
+
+
+
+## Table of contents
+
+1.1 Summary....................................................2 
+
+1.2 Introduction.................................................2
+
+1.3 Material and Methods/ Experimental Design.................3
+
+1.4 Results of the Analysis...................................... 3
+
+1.5 Conclusions..................................................9
+
+1.6 Appendix...................................................10
+
+
+
+
+## Abbreviations
+
+SST..................................Total Sum of Squares
+
+ANOVA..............................Analysis of Variance 
+
+SSE.................................Error Sum of Squares 
+
+SS...................................Sum of Squares
+
+DF..................................Degree of Freedom
+
+MS..................................Mean Square
+
+
+
+\pagebreak
+
+## 1.1 Summary
+
+In this study, a three-way Analysis of Variance (ANOVA) is conducted to investigate the impact of species type, acclimatization, and post-acclimatization environment on ion leakage in potato plants. The findings revealed an interaction between species type and acclimatization regimes (cold and room temperature) regarding their influence on ion leakage. The study concluded that species 2 plants exhibited lower ion leakage when acclimated in a cold temperature regime. Additionally, the results suggested that plants generally performed better when acclimated in a cold temperature regime and placed in a room with a temperature of -4 degrees Celsius.  
+
+
+## 1.2 Introduction
+
+The survival of plants in cold climates depends on their ability to acclimatize to changing temperatures.
+Cold acclimation is a process through which plants adapt to low temperatures by altering their biochemical and physiological processes. During cold acclimation, plants synthesize specific proteins, accumulate compatible solutes, and modify their lipid composition to enhance their tolerance to cold stress (Kumar et al., 2019). Plants' ability to adapt to cold climates is of significant interest to researchers due to its ecological and agricultural implications. Cold acclimation, the process by which plants develop increased cold tolerance through exposure to low temperatures, has been observed to reduce cold-induced damage. Potato plants (Solanum tuberosum) are commonly studied due to their economic importance and susceptibility to cold stress.Several studies have investigated the effects of different acclimatization regimes and temperature conditions on potato plants' adaptation to cold climates. Acclimatization regimes involve exposing plants to either cold conditions or maintaining them at room temperature. Temperature conditions typically involve subjecting plants to specific cold temperatures, such as -4 degrees Celsius or -8 degrees Celsius. This study aims to evaluate an experiment on how plants adapt to cold climates, particularly focusing on two species of potato that were exposed to different acclimatization regimes and cold temperatures.
+
+Certain physiological disorders in tubers are closely linked to heat stress and hot, arid climates (Ahmadi et al., 1960). The detrimental effects of these conditions are further exacerbated when combined with water stress (Levy, 1986). Rising temperatures and water deficiency contribute to an increased occurrence and severity of knobbiness, chain-tuber formation, secondary growth, growth cracks, and heat necrosis (Struik et al., 2007; Painter and Augustin, 1976). Additionally, water stress and an increase in common scab incidence have been associated with physiological disorders such as brown center, hollow heart, translucent ends, and an elevated risk of common scab occurrence (Ojala et al., 1989; Alva, 2008; Mane et al., 2008).
+
+
+* Goals/Objectives of the study
+
+   a. To determine if plants previously placed in cold adapt to cold weather better.
+   
+   b. To determine if plants later put in -4 or -8 C doesn't make much difference in mean damage score according to ion leakage
+   
+   c. To determine which pairwise comparison of treatment means contributed to a significant interactions.
+   
+
+In the subsequent sections, *Material and Methods/ Experimental Design* will be discussed to specify which statistical tool and model will be suited for the analysis fo the study, followed by the *Results of the Analysis* where ANOVA tables, Profile plots for treatment means for the species of the potato, acclimatization regimes and cold temperatures, figures for residual analyses in checking for the assumptions of the three(3)- way ANOVA model. These analyses will be conducted with the help of R software. Also, all graphs, figures, confidence intervals, and tables outcomes will be generated using the R software. Finally, the *Conclusions* for the study will be discussed according to the results in the *Results of the Analysis*. This will ascertain the objectives for the study.
+
+
+
+
+
+
+## 1.3 Material and Methods/ Experimental Design
+
+
+The experiment focused on two species of potato plants, each exposed to one of two acclimatization regimes: cold and control. The cold treatment involved exposing the first plant to a cold room, while the control treatment exposed the second plant to room temperature. After several days, both plants were subjected to one of two cold temperatures, coded as 1 (-4 degrees C) and 2 (-8 degrees C). The experiment measured two responses: damage score for photosynthesis (photo) and damage score for ion leakage. Under this steady, we are specifically interested in the damage score for ion leakage. The best statistical tool to employ in analyzing the problem is a Three (3)-Way Analysis of Variance (ANOVA) with unequal treatment sample sizes. As a result regression approach is efficient in computing the SSE since orthogonality of SS do not hold under the unequal treatment sample sizes. R studio was used in generating all the summary statistics, graphs and the tables in this study. The study has a total of 75 observations with three factors. The significance level for the study is $\alpha=0.05$
+
+
+
+
+
+
+
+## 1.4 Results of the Analysis
+In this section, we will specifically deal with the analysis of the data. Useful graphs and tables will be generated with clear explanation to help understand the problem. R studio was used in generating all the summary statistics, graphs and the tables in this study.  
+
+**1.4.1 Summary statistics and explanation for the potato data set**
+
+Below are the explanations for the factor level means taking the three factors with their respective levels into consideration. Let us compare the mean ion leakages for each factor levels. The study has a total of 75 observations with three factors.
+
+Considering the acclimatization regimes, we can clearly observe that, on average, potato plants previously placed in cold temperature adapt to cold weather better and have a minimum ion leakage of 6.58 damage score as compared to those that were kept at room temperature with a damage score ion leakage score of 21.11. This indicates a significant mean damage score difference between the two levels of acclimatization regimes.
+
+Also, considering the potato plants that were subjected to one of two cold temperatures(-4 degree Celsius or -8 degree Celsius ), on average, we can clearly see that, potato plants later placed in -4 degree Celsius adapt to cold weather better and have a minimum ion leakage of 9.6 damage score as compared to those that were later placed in -8 degree Celsius temperature with a damage score ion leakage score of 17.4. This shows a significant mean damage score difference between the two levels of the two cold temperature.
+
+Taking the two species of potato that were studied (species 1 and 2), we can clearly observe that, on average, potato plants form species 1 adapt to cold temperature much better than Species 2 and also have the least ion leakage damage score of 6.28 as compared to species 2 with an ion leakage damage score of 19.92.
+
+On taking into consideration, all the factors, let us throw more light on the factor level combinations that performed *best* and *worst* according to their respective mean damage score. Potato plants from species 1 that were subjected to cold temperature and later assigned to -4 degree Celsius tends to have the least mean ion leakage damage score of 2.34 while the plants from species 2 that were subjected to room temperature and later placed in -8 degree Celsius tends to have the maximum mean ion leakage damage score of 32.32.
+
+  
+**1.4.2 Graphical display for the difference between factor level means.**
+
+According to Fig 1.4.1.1 in Appendix 1.9, it is clear that there are significant difference or variability between each factor level means.
+
+Specifically, considering the variety of the potato plants, species 2 have more variability as compared to the plants from species 1. This suggest that, there is a least mean damage score for ion leakage for species 1 as compared to the species 2.
+
+Also, taking into account the acclimatization regimes, potato plants previously placed in room temperature adapt to cold weather better, as such they are more variable with the  maximum ion leakage damage score as compared to those that were kept at cold temperature with the least mean damage score ion leakage.
+
+Lastly, considering the potato plants that were subjected to one of two cold temperatures(-4 degree Celsius or -8 degree Celsius ), those subjected to -8 degree Celsius have more variability than those later placed in -4 degree Celsius which shows that, plant later subjected to -8 degree Celsius  has high adaptability rate.
+
+
+**1.4.3 Interaction Plots/Profile plots**
+
+The analysis of Fig 1.4.3.1 reveals that plants exposed to the cold regime and later placed in -4 degrees Celsius exhibit significantly less ion leakage damage compared to plants exposed to the room temperature regime for both species. However, for Species 1, the plants exposed to the cold regime and later placed under -8 degrees Celsius experience higher ion leakage damage than plants exposed to the room temperature regime. Species 2 plants that are later placed in -8 degrees Celsius after being exposed to the cold regime show significantly lower ion leakage mean damage scores compared to those exposed to the room temperature regime. The same pattern holds true for Species 2 plants that are later placed in -4 degrees Celsius after being exposed to the cold regime. On the other hand, species 1 plants that are later placed in -4 degrees Celsius after being exposed to the room temperature regime do not exhibit a significant difference in ion leakage mean damage score compared to those exposed to the cold regime. Similarly, species 1 plants that are later placed in -8 degrees Celsius after being exposed to the room temperature regime show a relatively smaller difference in ion leakage mean damage score compared to those exposed to the cold regime. These non-parallel curves within each plot indicate the presence of interactions among the factors, although the interactions do not appear to be significant.
+
+```{r, echo = FALSE, eval = TRUE}
+potato <- read.table(file = "C://Users//baide//Desktop//STAT 545//potato.txt", header = TRUE) 
+
+n <- nrow(potato)
+
+potato$regime <- factor(potato$regime, label =c("R","C"))
+potato$variety <- factor(potato$variety, label = c("s1","s2"))
+potato$temp <- factor(potato$temp, label = c("-4","-8"))
+attach(potato)
+par(mfrow=c(1,2))
+potato2 <- potato[temp==-4,]
+n2 <- nrow(potato2)
+interaction.plot(potato2$regime, potato2$variety, potato2$leak,
+                 type='b', col=1:2, pch=1:2, main ="regime*variety, temp = -4")
+
+
+potato3 <- potato[temp==-8,]
+n3 <- nrow(potato3)
+interaction.plot(potato3$regime, potato3$variety, potato3$leak,
+                 type='b', col=1:2, pch=1:2, main ="regime*variety, temp = -8")
+
+diff <- data.frame(aggregate(potato2$leak~potato2$regime+potato2$variety, data = potato2, mean))$potato2.leak-data.frame(aggregate(potato3$leak~potato3$regime+potato3$variety, data = potato3, mean))$potato3.leak
+
+```
+  **Fig 1.4.3.1 Treatment mean differences plot (Profile plot) for the presence of a three-factor interactions.**
+
+
+```{r, echo = F, eval = TRUE}
+myfit <- lm(leak~variety*regime*temp, contrasts= c(variety = contr.sum, regime = contr.sum, temp =contr.sum))
+table <- Anova(myfit, type = 3)
+```
+
+**1.4.4 ANOVA appropriatness: Residual Analysis**
+
+
+**1.4.4.1 Checking for any potential outlier(s)**
+
+Here we make use of the rstudent which is the studentized deleted residual with $Y_{ij}$ being deleted from the analysis where $d_{ij}= Y_{ij} - \bar{Y}_{.(j)}$ and  $t_{ij} = d_{ij}/se(d_{ij})$.
+
+The hypotheses for the test are generated below; $H_{0}:$ observation $Y_{ij}$ is not an outlier against $H_{0}:$ observation $Y_{ij}$
+
+According to Appendix 1.3, the *outlierTest* shows no potential outlier in the dataset.
+
+**1.4.4.2 Checking for constant variance and normality error terms assumption**
+
+According to Fig 1.4.3.2, the diagnostic plot (residuals vrs fitted), we can clearly see a funnel-shaped graph which shows non constancy of error variance. Thus, the constant error variance assumption is violated. In addition, the normal probability plot (QQ-plot) shows high skewness at the tails of the residuals normality plot. From Appendix 1.3, the  Shapiro Test was carried, and the corresponding is p-value = 0.03256 < 0.05 which indicates rejection of normality assumption. Thus, the normality assumption is violated. 
+
+Also, according to Appendix 1.3, the Levene’s Test for Homogeneity of Variance was carried out and the outcome shows a p-value(2.307e-06) less than 0.05. This lead to rejection of the null hypothesis $H_{0} = \sigma_{1}^{2} = \ldots = \sigma_{8}^{2}$. Thus, the Levene’s Test for Homogeneity of Variance solidifies the conclusion that the constant error variance is violated for the potato data on ion leakage. This confirms that the funnel-shaped nature for the second residual plot for Fig 1.4.3.2 is not normally distributed. 
+
+
+```{r,echo=F,results='hide', fig.show='hold',eval=T}
+par(mfrow=c(1,2)) 
+qqPlot(myfit$residuals, las=1, main ="QQplot")
+plot(myfit$fitted, myfit$resid, xlab ="Fitted", ylab="Residuals")
+rstudent <- rstudent(myfit)
+bcritical <- qt(1-0.05/(2*n),75-8-1)
+outliers <- which(abs(rstudent) > bcritical)
+outliers
+leveneTest(leak~variety*temp*regime, data = potato)
+shapiro.test(myfit$resid)
+outlierTest(myfit)
+```
+**Fig 1.4.3.2 Residual plot: Normal probability and Residual against Fitted plots**
+
+
+**1.4.4.3 ANOVA Model Fitting**
+
+**Table 1.4.1 ANOVA Model summary**
+ 
+                                SS         DF     F Value     Pr($>$F)
+----------------------- ---------- ----------  ---------- -----------
+(Intercept)             8110.74    1           107.54     0.0000
+Variety                 1919.18    1           25.45      0.0000        
+Regime                  1517.70    1           20.12      0.0000
+Temp                    785.93     1           10.42      0.0000
+Variety:Regime          2115.75    1           28.05      0.0000
+Variety:Temp            43.96      1           0.58       0.4479
+Regime:Temp             16.28      1           0.22       0.6437
+Variety:Regime:Temp     83.48      1           1.11       0.2965
+Residuals               5053.15    67
+----------------------- ---------- ---------- ----------- ----------- 
+
+Let us test whether or not the three-factor interaction is significant using $\alpha= 0.05$. 
+
+**Hypothesis** : $H_0:$ All $(\alpha\beta\gamma)_{ijk}$ are equal to zero for, (i,j,k=1,2)    against  $H_\alpha:$ Not all  $(\alpha\beta)_{ijk}$ equal zero for, (i,j,k=1,2) 
+ 
+**Decision rule** : Reject $H_0$, if p-value$<\alpha=0.05$
+
+Do not reject $H_0$ , if p-value$\ge\alpha=0.05$
+
+                                   
+**Conclusion** : We can clearly see from Table 1.4.1 that, the p-value (0.2965) for the three-factors interaction is greater than $\alpha=0.05$. So we do not reject the null hypothesis $H_0$ and we can conclude that there is no statistically significant interaction among the acclimatization regimes, variety of potato species and cold temperatures of the ion leakage used for the study. This suggest that the composite effect of these three factors are unimportant for the ion leakage. As a result, the two-factor interactions and main effects for the three factors acclimatization regimes, variety of potato species and cold temperatures should be of interest for composite effect explanation.
+
+From the residual analyses, we observed that all the measurement variable (the potato data) does not fit an approximated normal distribution and also, has serious different standard deviations across all observations, as a result we need to try a data transformation to correct this ANOVA assumption discrepancies. There are some beneficial transformations we can use, such as square-root transformation and log transformation. We will explore which transformation will work best for the data. As a result, new analyses will be conducted to explain the interactions and the main effects of the factors,  acclimatization regimes, variety of potato species and cold temperatures if possible.
+
+**1.4.4.4 Appropriate transformation of the data**
+
+According to Fig 1.4.3.3 in Appendix 1.3 , the Box-Cox transformation, $\lambda= 0.2$ appears to be within the 95% confidence interval. Thus, the observations on the ion leakage will have to be redefined. An ion leakage of 2 score is added to the response to correct the assumptional departures of the model,
+
+Thus, the new ANOVA model (using the transformed data) for the full Model is;
+
+
+$$ Y_{ijkm}^{0.2} = \mu_{...} +\alpha_{1}X_{ijkm1}+\beta_{1}X_{ijkm2}+\gamma_{1}X_{ijkm3}+(\alpha\beta)_{11}X_{ijkm1}X_{ijkm2}+
+(\alpha\gamma)_{11}X_{ijkm1}X_{ijkm3} +$$
+$$ (\beta\gamma)_{11}X_{ijkm2}X_{ijkm3}+(\alpha\beta\gamma)_{111}X_{ijkm1}X_{ijkm2}X_{ijkm3}+\epsilon_{ijk}$$
+Where i=1,2 j=1,2 and k=1,2
+
+$$X_{ijk1} = \left\{
+     \begin{array}{lr}
+       1 & \text{if case from species 1 for factor variety}\\
+      -1 & \text{if case from species 2 for factor variety}
+     \end{array}
+   \right.\\$$
+   
+   
+
+ $$X_{ijk2} = \left\{
+     \begin{array}{lr}
+       1 & \text{if case from cold room for acclimatization regime}\\
+      -1 & \text{if case from room temp. for acclimatization regime}
+     \end{array}
+   \right.\\$$   
+   
+
+ $$X_{ijk3} = \left\{
+     \begin{array}{lr}
+       1 & \text{if case from -4
+degrees C for cold temperatures}\\
+      -1 & \text{if case from -8
+degrees C for cold temperatures}
+     \end{array}
+   \right.\\$$ 
+
+**1.4.5 ANOVA model fitting for the transformed data**
+
+According to Table 1.4.2 in Appendix, let us test whether or not the three-factor interaction is significant using $\alpha= 0.05$ after data transformation. 
+
+**Hypotheses** : $H_0:$ All $(\alpha\beta\gamma)_{ijk}$ are equal to zero, for (i,j,k=1,2)    against  $H_\alpha:$ Not all  $(\alpha\beta)_{ijk}$ equal to zero, for (i,j,k=1,2) 
+ 
+**Decision rule** : Reject $H_0$, if p-value$\le\alpha=0.05$
+  
+Do not reject $H_0$ , if p-value$>\alpha=0.05$
+
+
+
+**Conclusion** :We can clearly see from Table 1.5 that, the p-value (0.4639) for the three-factors interaction is greater than $\alpha=0.05$. So we do not reject the null hypothesis $H_0$ and we can conclude that there is no statistically significant interaction among the acclimatization regimes, variety of potato species and cold temperatures of the ion leakage used for the study after an appropriate transformation. This suggest that the composite effect of these three factors are unimportant for the ion leakage. As a result, the two-factor interactions for the three factors acclimatization regimes, variety of potato species and cold temperatures should be of interest for composite effect explanation. Therefore we will drop the three-factor interaction and generate another ANOVA table for new analysis.
+
+**1.4.5.1 Two-Factor interaction Analysis**
+
+From the ANOVA table, the $p_{value} = 0.035 < 0.05$ for the two-interaction factor between regime and temperature factors. The null hypothesis is rejected, and regime and temperature interaction is statistically significant.
+
+The $p_{value} = 0.726 > 0.05$ for the two-interaction factor between variety and temperature factors. The null hypothesis holds and no interaction is present between temperature and variety.
+
+The $p_{value} = 0 < 0.05$ for the two-interaction factor between variety and regime factors. The null hypothesis is rejected and interaction is present between variety and regime.
+
+**1.4.5.2 Checking for constant variance and normality error terms assumption for the transformed data**
+
+According to Fig 1.5.1 in Appendix 1.5, the diagnostic plot (residuals versus fitted values) there is no strange pattern in the plot which shows constancy with error variance and it is a clear indication that the constant error variance assumption is not violated, thus, the transformation is appropriate. In addition, the normal probability plot (QQ-plot) does not have heavy tails as compared to the original data. After the transformation, the normal probability plot (QQ-plot) shows an approximated normally distribution.Thus there is no problem with the normality of error terms assumption.
+
+
+**1.4.5.3 Test of no two-Factor interaction Analysis 3-interaction factor removed**
+
+According to the Table 1.4.2 in Appendix 1.9, the following inferences can be drawn from the two-factor interactions.
+The $p_{value} = 0.035 < 0.05$ for the two-interaction factor between regime and temperature factors on the transformed ion leakage score data. The null hypothesis is rejected, and regime and temperature interaction is statistically significant.
+
+The $p_{value} = 0.726 > 0.05$ for the two-interaction factor between variety and temperature factors on the transformed ion leakage score data. The null hypothesis holds and no interaction is present between temperature and variety. Thus, the interaction between temperature and variety is statistically insignificant or unimportant.
+
+Also, the $p_{value} = 0 < 0.05$ for the two-interaction factor between variety and regime factors on the transformed ion leakage score data. The null hypothesis is rejected and interaction is present between variety and regime. 
+
+As a result, interpreting the main effects will not be needed since were are interested in the composite factor effects. 
+
+
+**1.4.5.4 Final Reduced Model with Variety and Temperature interaction removed**
+
+**Table 1.4.3 Final ANOVA model fitting**
+
+                     SS                DF              F                    Pr($>$F)
+------------------- ------------------ --------------- -------------------- ------------------
+(Intercept)         158.86             1               4707.14              0.0000 
+Variety             1.00               1               29.51                0.0000
+Regime              0.75               1               22.35                0.0000  
+Temp                0.90               1               26.67                0.0000   
+Variety:Regime      0.87               1               25.89                0.0000 
+Regime:Temp         0.16               1               4.76                 0.0326 
+Residuals           2.33               69   
+
+
+**1.4.5.2 Two-Factor interaction Analysis for the final ANOVA model**
+
+According to the Table 1.4.3 above, the following inferences can be drawn from the two-factor interactions.
+The $p_{value} = 0.0326 < 0.05$ for the two-interaction factor between acclimatization regime and temperature factors on the transformed ion leakage score data. As a result, the null hypothesis is rejected, and regime and temperature interaction is statistically significant in the study.
+
+Also, the $p_{value} = 0 < 0.05$ for the two-interaction factor between variety and acclimatization regime factors on the transformed ion leakage score data. Thus, the null hypothesis is rejected and interaction is present between variety and regime. So, the interaction between variety and acclimatization regime is statistically significant in the study.As a result, interpreting the main effects will not be needed since were are interested in the composite factor effects. 
+
+**1.4.5.3 Interaction plots for the two factor interaction**
+
+According to Appendix 1.6, the interaction plot for Regime by Variety clearly shows that interaction which further confirms that the interaction is significant in  Table 1.43. Likewise, we can also observe the same for  temperature by acclimatization regime. Thus, only these two interactions have a significant effect to the study.
+
+**1.4.5.4 Pairwise Comparisons of Factor Level Means**
+
+Here, we will study the significance of the pairwise comparisons of factor level means. According to Fig 1.5.12a in Appendix 1.8, the least square average damage score of ion leakage of plants subjected to cold temperature and then to temperature -4 appears significantly different from other combinations. This combination, has an average of 1.31 as leakage score that is significantly lower than other combinations score. This combination has the least ion leakage comparing to other combinations. We can also observe that, the least square average damage score of ion leakage of plants subjected to room temperature  and then to temperature -4 appears significantly higher from other combinations. 
+
+Also, according to Fig 1.5.12b in Appendix 1.8 for species 2 conditioned at room temperature previously is significantly higher (worse adaptability) than other combinations of factor levels of of variety and temperature. Potato plants of species 2 that are subjected to room temperature has significantly high ion leakage compared to other combinations. Interaction between Variety and Acclimatization Regime, Acclimatization Regime and Temperature were have significant composite effect on the damage score.
+
+
+
+## 1.5 Conclusion
+
+ * The study's findings can be summarized as follows;
+
+The results of the study indicate that acclimatization regimes, cold temperature levels, and potato species significantly influence the adaptability of potato plants to cold weather, as measured by ion leakage damage scores.
+
+*1. Acclimatization Regimes:*
+
+Potato plants previously placed in cold temperature conditions demonstrate better adaptability to cold weather, with a significantly lower mean ion leakage damage score (6.58), compared to plants kept at room temperature (21.11).
+
+*2. Cold Temperature Levels:*
+
+Potato plants subjected to a later temperature of -4 degrees Celsius exhibit better cold weather adaptation, with a significantly lower mean ion leakage damage score (9.6), compared to plants subjected to -8 degrees Celsius (17.4).
+
+*3. Potato Species (Variety):*
+
+Species 1 potato plants show superior adaptability to cold temperature, with a significantly lower mean ion leakage damage score (6.28), compared to Species 2 (19.92).
+
+*4. Joint Effects:*
+
+The joint effect of factors reveals that species 1 plants subjected to cold temperature and later placed at -4 degrees Celsius demonstrate the least mean ion leakage damage score (2.34), while species 2 plants conditioned at room temperature and later exposed to -8 degrees Celsius have the highest mean ion leakage damage score (32.32).
+
+*5. Three-Factor Interaction:*
+
+The three-factor interaction among acclimatization regimes, variety, and cold temperature was not found to be significant and was therefore removed from further analysis.
+
+*6. Assumptions and Data Transformation:*
+
+The normality assumption and constant error variance were violated due to unusual patterns in the graphs of the potato ion leakage scores. To address this, an appropriate transformation was applied to correct these patterns.
+
+*7. Interactions and Comparisons:*
+
+The results indicate significant interactions between factors. Specifically, species 2 conditioned at room temperature exhibits significantly higher ion leakage damage compared to other combinations. Additionally, the least square average damage score of ion leakage for plants conditioned at room temperature and later exposed to -4 degrees Celsius is significantly higher than other combinations. Likewise, the least square average damage score of ion leakage for plants conditioned at cold temperature and later exposed to -4 degrees Celsius differs significantly from other combinations.
+
+In summary, the study highlights the importance of acclimatization regimes, cold temperature levels, and potato species in determining the adaptability of potato plants to cold weather, as indicated by ion leakage damage scores. These findings contribute to our understanding of plant responses to environmental stressors and can aid in the development of strategies to enhance crop resilience in cold climates.
+
+**1.5.1 Further Research**
+
+For further research, the following recommendation can be made. The factor effects for variety, temperature and acclimatization regime could be studied as random effects rather than fixed effects. In this light, any possible variation that will be of interest will be captured for further analysis.
+
+
+
+\pagebreak
+
+## 1.6 Appendix
+
+```{r, echo = F, include=F}
+library(SDAResources)
+library(ggplot2)
+library(ggrepel)
+library(plyr)
+library(dplyr)
+require(graphics)
+library(reshape2)
+library(xtable)
+library(tidyr)
+library(MASS)
+library(car)
+library(additivityTests)
+library(asbio)
+```
+
+**Appendix 1.1 Reading the data**
+
+```{r, echo = T, eval = TRUE}
+# reading the potato txt file
+potato <- read.table(file ="C://Users//baide//Desktop//STAT 545//potato.txt", header = TRUE) 
+
+n <- nrow(potato)
+
+
+head(potato)
+
+potato$regime <- factor(potato$regime, label =c("R","C"))
+potato$variety <- factor(potato$variety, label = c("s1","s2"))
+potato$temp <- factor(potato$temp, label = c("-4","-8"))
+attach(potato)
+```
+
+**Appendix 1.2 Redefining variables of the data and computation of factor level treatment means**
+```{r, echo = T, eval = TRUE}
+potato <- read.table(file = "C://Users//baide//Desktop//STAT 545//potato.txt", header = TRUE) 
+potato$regime <- factor(potato$regime, label =c("R","C"))
+potato$variety <- factor(potato$variety, label = c("s1","s2"))
+potato$temp <- factor(potato$temp, label = c("-4","-8"))
+
+regime_mean <- tapply(leak, regime, mean,data=potato) 
+variety_mean <- tapply(leak, variety, mean, data=potato) 
+temp_mean <- tapply(leak, temp, mean)
+regime_mean
+variety_mean
+temp_mean
+
+aggregate(leak~regime+variety+temp, data = potato, mean) # cell means
+cell_sizes <- aggregate(leak~regime+variety+temp, data = potato, length) # unequal size
+```
+
+
+**Appendix 1.3 Fitting the ANOVA model**
+```{r, echo = T, eval = TRUE}
+myfit <- lm(leak~variety*regime*temp, contrasts= c(variety = contr.sum, regime = contr.sum, temp =contr.sum))
+table <- Anova(myfit, type = 3)
+table
+```
+
+**Appendix 1.3 Residual analysis and outlier checking**
+```{r,echo=T,results='hold', fig.show='hide',eval=T} 
+#### Residual analysis and outliers checking
+par(mfrow=c(1,2)) 
+qqPlot(myfit$residuals, las=1, main ="QQplot")
+plot(myfit$fitted, myfit$resid, xlab ="Fitted", ylab="Residuals")
+rstudent <- rstudent(myfit)
+bcritical <- qt(1-0.05/(2*n),75-8-1)
+outliers <- which(abs(rstudent) > bcritical)
+outliers
+leveneTest(leak~variety*temp*regime, data = potato)
+shapiro.test(myfit$resid)
+outlierTest(myfit)
+potato[57:58,]
+
+```
+
+
+** Appendix 1.4 Appropriate Transformation**
+
+```{r, echo = FALSE, eval = TRUE}
+min(leak) #-1.11
+leak2 <- leak + 2 #make response positive: box-cox needs a positive response
+myfit2 <- lm(leak2~variety*regime*temp,contrasts = c(variety=contr.sum, regime=contr.sum,temp=contr.sum))
+
+par(mfrow=c(1,1))
+boxcox(myfit2,lambda =seq(-3,3, length = 10))
+
+new_leak <- (leak+2)^(0.2)
+```
+**Fig 1.4.3.3 Transformation of the data  **
+
+**Appendix 1.5 Fitting new ANOVA after an appropriate transformation using regression approach**
+
+```{r, echo = T, eval = TRUE}
+# regression approach: setting the factor
+
+# x1 is the indicator variable for variety factor (need 1 indicator)
+x1<-NULL
+
+for(i in 1:n){
+  if(potato$variety[i] == "s1"){
+    x1[i] <- 1
+  }
+  else if(potato$variety[i] == "s2"){
+          x1[i] <- -1
+
+  }
+}
+
+# x2 is the indicator variable for regime factor
+x2<-NULL
+
+for(i in 1:n){
+  if(potato$regime[i] == "R"){
+    x2[i] <- 1
+  }
+  else if(potato$regime[i] == "C"){
+          x2[i] <- -1
+}
+}
+
+
+# x3 is the indicator variable for the temperature factor
+x3<-NULL
+
+for(i in 1:n){
+  if(potato$temp[i] == -4){
+    x3[i] <- 1
+  }
+  else if(potato$temp[i] == -8){
+          x3[i] <- -1
+}
+} 
+
+x1x2 <- x1*x2  
+x1x3 <- x1*x3
+x2x3 <- x2*x3
+x1x2x3 <- x1*x2*x3
+
+```
+
+```{r, echo = T, eval = TRUE}
+myfit_full <- lm(new_leak~variety*regime*temp,contrasts = c(variety=contr.sum, regime=contr.sum,temp=contr.sum))
+myfit_full
+# plot diagnostics
+par(mfrow=c(2,2))
+plot(myfit_full)
+```
+**Fig 1.5.1 Residual plots for transformed data**
+
+```{r, echo = FALSE, eval = TRUE}
+# see the anova table of full model and check for 3 factor interaction
+# from ANOVA table, remove three interaction factor
+table_1 <- Anova(myfit_full, type = 3)
+
+# Reduced model with 3-interaction factor removed
+myfit_red <- lm(new_leak~variety+regime+temp+variety:temp+regime:temp+variety:regime,contrast = c(variety=contr.sum,regime=contr.sum, temp = contr.sum))
+
+# p-value = 0.464 > 0.05. Null hypothesis holds and accept the reduced model 
+anova(myfit_full, myfit_red)
+
+```
+
+**Appendix 1.6 Reduced model with 3-interaction factor removed and interaction plots for the two-factor interaction**
+```{r, echo = T, eval = TRUE}
+# ANOVA table for the reduced model
+# check 2 factor interaction
+
+
+table_2 <- Anova(myfit_red,type = 3)
+
+full_red <- anova(myfit_full, myfit_red)
+
+
+## add the leak_new to the data
+potato$new_leak <- new_leak
+
+
+
+## plot for variety:regime interaction
+potato.mean.1 <- ddply(potato, .(variety,regime), summarise, m = mean(new_leak))
+p <- ggplot(potato, aes(x = variety , y =new_leak, colour = regime, shape = regime))
+p <- p + geom_hline(aes(yintercept = 0),colour ="black", linetype = "solid",
+                    size =0.2, alpha = 0.3)
+p <- p + geom_boxplot(alpha = 0.25, outlier.size=0.1)
+p <- p + geom_point(alpha = 0.5, position=position_dodge(width=0.75))
+p <- p + geom_point(data = potato.mean.1, aes(y = m), size = 4)
+p <- p + geom_line(data = potato.mean.1, aes(y = m, group = regime), size = 1.5)
+p <- p + labs(title = "Potato interaction plot, Regime by Variety")
+p
+
+# interaction plot of regime:temperature. NOT significant
+potato.mean.2 <- ddply(potato, .(temp,regime), summarise, m = mean(new_leak))
+p2 <- ggplot(potato, aes(x = temp , y =new_leak, colour = regime, shape = regime))
+p2 <- p2 + geom_hline(aes(yintercept = 0),colour ="black", linetype = "solid",
+                    size =0.2, alpha = 0.3)
+p2 <- p2 + geom_boxplot(alpha = 0.25, outlier.size=0.1)
+p2 <- p2 + geom_point(alpha = 0.5, position=position_dodge(width=0.75))
+p2 <- p2 + geom_point(data = potato.mean.2, aes(y = m), size = 4)
+p2 <- p2 + geom_line(data = potato.mean.2, aes(y = m, group = regime), size = 1.5)
+p2 <- p2 + labs(title = "Potato interaction plot, Regime by Temperature")
+p2
+
+## remove the variety:temp interaction.
+## new reduced model and final model 
+## the regime:temp and variety:regime are both significant interaction. keep them
+myfit_new_red <- lm(new_leak~variety+regime+temp+regime:temp+variety:regime,contrast = c(variety=contr.sum,regime=contr.sum, temp = contr.sum))
+
+table_3 <- Anova(myfit_new_red, type = 3)
+
+```
+
+
+```{r, echo = FALSE, eval = TRUE}
+# ANOVA table of the final reduced model
+table_3 <- Anova(myfit_new_red, type = 3)
+
+# plot diagnostic plots
+# according to the plot, the error of variance appears constant across the fitted values. Normality plot shows linearity in the relation between standardized residuals and the theoretical quantiles.
+par(mfrow=c(2,2))
+plot(myfit_new_red)
+```
+
+**Appendix 1.7 Residual Analysis for the transformed data** 
+
+```{r, echo = FALSE, eval = TRUE} 
+par(mfrow=c(1,1))
+qqPlot(myfit_new_red$resid, las = 1, main ="QQplot") #linearity in plot appears
+
+# p-value = 0.1292 > 0.05 
+# accept the Null Hypothesis: Error terms are normal
+normality_test <- shapiro.test(myfit_new_red$residuals) 
+
+# Residuals vs fitted values plot shows constancy in error in variance
+par(mfrow=c(1,1))
+plot(myfit_new_red$fitted,myfit_new_red$resid, xlab= "Fitted Values", ylab="Residuals", main = "Resiudals vs Fitted Values")+abline(h=0,col = "gray75")
+
+
+## Check outliers
+## there is no outliers
+rstudent_new <- rstudent(myfit_new_red)
+bcritical2 <- qt(1-0.05/(2*n), 75-6-1)
+outliers_new <- which(abs(rstudent_new)>bcritical2)
+
+# OR use the outlier test
+# p-value = 0.0024 < 0.05. No outliers 
+outlier_test <- outlierTest(myfit_new_red)
+```
+
+```{r, echo = FALSE, eval = TRUE} 
+# find the affects coefficients
+linear_model <- lm(new_leak~x1+x2+x3+x1x2+x2x3)
+# overall mean
+potato.mean <- ddply(potato, .(variety,temp,regime), summarise, m = mean(new_leak))
+overall_mean <- sum(potato.mean$m)/8
+```
+
+**Appendix 1.8 Pairwise Comparisons of Factor Level Means**
+
+
+```{r, echo = FALSE, eval = TRUE} 
+library(lsmeans)
+regime_temp <- lsmeans(myfit_new_red, pairwise ~regime:temp, adjust = "tukey")
+regime_var <- lsmeans(myfit_new_red, pairwise~regime:variety,
+                       adjust ="tukey")
+plot(regime_temp$contrasts)
+```
+**Fig 1.5.1.2a Pairwise Comparisons of Factor Level Means* 
+
+```{r, echo = FALSE, eval = TRUE} 
+
+plot(regime_var$contrasts)
+```
+**Fig 1.5.1.2b Pairwise Comparisons of Factor Level Means* 
+
+
+**Appendix 1.9 Graphical display for the difference between factor level means.**
+
+```{r, echo = FALSE, eval = TRUE}
+potato <- read.table(file = "C://Users//baide//Desktop//STAT 545//potato.txt", header = TRUE) 
+
+n <- nrow(potato)
+
+potato$regime <- factor(potato$regime, label =c("R","C"))
+potato$variety <- factor(potato$variety, label = c("s1","s2"))
+potato$temp <- factor(potato$temp, label = c("-4","-8"))
+attach(potato)
+par(mfrow=c(1,3))
+boxplot(leak ~ variety, data=potato, xlab= "Variety", 
+ylab = "Mean damage score for ion Leakage")
+
+boxplot(leak~regime, data = potato,
+        xlab ="Regime",ylab = "Mean damage for ion leakage")
+boxplot(leak~temp, data=potato,
+        xlab="Temp",ylab = "Mean damage for ion leakage")
+```
+ **Fig 1.4.2.1 Boxplots for difference between factor level means**
+
+**Appendix 1.10 ANOVA model fitting for the transformed data**
+
+ **Table 1.4.2 Transformed data ANOVA fitting**
+
+                     SS                DF              F                    Pr($>$F)
+------------------- ------------------ --------------- -------------------- ------------------
+(Intercept)         158.84             1               4615.40              0.0000 
+Variety             1.00               1               28.96                0.0000 
+Regime              0.75               1               21.94                0.0000  
+Temp                0.67               1               19.60                0.0000  
+Variety:Regime      0.87               1               25.36                0.0000 
+Variety:Temp        0.01               1               0.18                 0.6697  
+Regime:Temp         0.17               1               4.90                 0.0303  
+Variety:Regime:Temp 0.02               1               0.54                 0.4639 
+Residuals           2.31               67  
+
+
+**Table 1.4.2 Transformed data ANOVA fitting**
+
+                     SS                DF              F                    Pr($>$F)
+------------------- ------------------ --------------- -------------------- ------------------
+(Intercept)         158.87             1               4647.49              0.0000  
+Variety             0.99               1               29.10                0.0000 
+Regime              0.75               1               22.04                0.0000  
+Temp                0.88               1               25.82                0.0000  
+Variety:Regime      0.87               1               25.58                0.0000 
+Variety:Temp        0.00               1               0.12                 0.7258  
+Regime:Temp         0.16               1               4.61                 0.0354 
+Residuals           2.32               68   
+
+
+**Reference**
+
+Ávila-Valdés, A., Quinet, M., Lutts, S., Martínez, J. P., & Lizana, X. C. (2020). Tuber yield and quality responses of potato to moderate temperature increase during Tuber bulking under two water availability scenarios. Field Crops Research, 251, 107786.
+
+Ahmadi, A. A., Mobarak, H., & Osgusthorpe, J. (1960). The effect of time of planting on occurrence of internal brown spot in the potato variety Arran Banner in Lebanon. American Potato Journal, 37, 23-27.
+
+Painter, C. G., & Augustin, J. (1976). The effect of soil moisture and nitrogen on yield and quality of the Russet Burbank potato. American Potato Journal, 53, 275-284.
+
+Kumar, S., Kaur, R., Kaur, N., &amp; Bhardwaj, R. (2019). Cold acclimation: a crucial strategy to enhance
+freezing tolerance in plants. Biology Open, 8(2), bio038398.
+
+Struik, P. C. (2007). Responses of the potato plant to temperature. In Potato biology and biotechnology (pp. 367-393). Elsevier Science BV.
+
+
